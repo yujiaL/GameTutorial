@@ -3,6 +3,7 @@ package;
 import flixel.FlxState;
 import flixel.FlxObject;
 import flixel.FlxG;
+import flixel.util.FlxSpriteUtil;
 import flixel.addons.editors.ogmo.FlxOgmoLoader;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.text.FlxText;
@@ -16,6 +17,13 @@ class PlayState extends FlxState
 	private var _mWalls:FlxTilemap;
 	private var _grpCoins:FlxTypedGroup<Coin>;
 	private var _grpEnemies:FlxTypedGroup<Enemy>;
+	
+	private var _hud:HUD;
+	private var _money:Int = 0;
+	private var _health:Int = 3;
+	
+	private var _inCombat:Bool = false;
+	private var _combatHud:CombatHUD;
 	
 	override public function create():Void
 	{
@@ -43,6 +51,14 @@ class PlayState extends FlxState
 		// Set camera.
 		FlxG.camera.follow(_player, TOPDOWN, 1);
 		
+		// Set HUD.
+		_hud = new HUD();
+		add(_hud);
+		
+		// Set Combat HUD;
+		_combatHud = new CombatHUD();
+		add(_combatHud);
+		
 		super.create();
 	}
 	
@@ -69,13 +85,55 @@ class PlayState extends FlxState
 	{
 		super.update(elapsed);
 		
-		// Check for player.
-		FlxG.collide(_player, _mWalls);
-		FlxG.overlap(_player, _grpCoins, playerTouchCoin);
+		if (!_inCombat)
+		{
+			// Check for player.
+			FlxG.collide(_player, _mWalls);
+			FlxG.overlap(_player, _grpCoins, playerTouchCoin);
+			
+			// Check for enemy.
+			FlxG.collide(_grpEnemies, _mWalls);
+			_grpEnemies.forEachAlive(checkEnemyVision);
+			
+			// Fight.
+			FlxG.overlap(_player, _grpEnemies, playerTouchEnemy);
+		}
+		else
+		{
+			if (!_combatHud.visible) // Come out of fight.
+			{
+				_health = _combatHud.playerHealth;
+				_hud.updateHUD(_health, _money);
+				if (_combatHud.outcome == VICTORY)
+				{
+					_combatHud.e.kill();
+				}
+				else
+				{
+					FlxSpriteUtil.flicker(_combatHud.e);
+				}
+				_inCombat = false;
+				_player.active = true;
+				_grpEnemies.active =  true;
+			}
+		}
 		
-		// Check for enemy.
-		FlxG.collide(_grpEnemies, _mWalls);
-		_grpEnemies.forEachAlive(checkEnemyVision);
+	}
+	
+	private function playerTouchEnemy(P:Player, E:Enemy):Void
+	{
+		if (P.alive && P.exists && E.alive && E.exists && !FlxSpriteUtil.isFlickering(E))
+		{
+			startCombat(E);
+		}
+	}
+	
+	private function startCombat(E:Enemy):Void
+	{
+		_inCombat = true;
+		_player.active = false;
+		_grpEnemies.active = false;
+		_combatHud.initCombat(_health, E);
 	}
 	
 	private function checkEnemyVision(e:Enemy):Void
@@ -93,6 +151,8 @@ class PlayState extends FlxState
 	{
 		if (P.alive && P.exists && C.alive && C.exists)
 		{
+			_money++;
+			_hud.updateHUD(_health, _money);
 			C.kill();
 		}
 	}

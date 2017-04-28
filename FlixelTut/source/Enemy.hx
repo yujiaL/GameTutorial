@@ -4,6 +4,7 @@ import flixel.FlxSprite;
 import flixel.FlxObject;
 import flixel.math.FlxVelocity;
 import flixel.math.FlxPoint;
+import flixel.util.FlxSpriteUtil;
 import flixel.FlxG;
 import flixel.system.FlxAssets.FlxGraphicAsset;
 
@@ -111,9 +112,21 @@ class Enemy extends FlxSprite
 			FlxVelocity.moveTowardsPoint(this, playerPos, Std.int(speed));
 		}
 	}
+	
+	public function changeEnemy(EType:Int):Void
+	{
+		if (etype != EType)
+		{
+			etype = EType;
+			loadGraphic("assets/images/enemy-" + etype + ".png", true, 16, 16);
+		}
+	}
 
 	override public function update(elapsed:Float):Void
 	{
+		if (FlxSpriteUtil.isFlickering(this))
+			return;
+		
 		_brain.update();
 		super.update(elapsed);
 	}
