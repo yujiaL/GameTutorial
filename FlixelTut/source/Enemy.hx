@@ -4,6 +4,7 @@ import flixel.FlxSprite;
 import flixel.FlxObject;
 import flixel.math.FlxVelocity;
 import flixel.math.FlxPoint;
+import flixel.system.FlxSound;
 import flixel.util.FlxSpriteUtil;
 import flixel.FlxG;
 import flixel.system.FlxAssets.FlxGraphicAsset;
@@ -12,12 +13,13 @@ class Enemy extends FlxSprite
 {
     public var speed:Float = 140;
     public var etype(default, null):Int;
+	public var seesPlayer:Bool = false;
+	public var playerPos(default, null):FlxPoint;
 	
 	private var _brain:FSM;
 	private var _idleTmr:Float;
 	private var _moveDir:Float;
-	public var seesPlayer:Bool = false;
-	public var playerPos(default, null):FlxPoint;
+	private var _sndStep:FlxSound;
 	
     public function new(X:Float=0, Y:Float=0, EType:Int)
     {
@@ -38,6 +40,10 @@ class Enemy extends FlxSprite
 		_brain = new FSM(idle);
 		_idleTmr = 0;
 		playerPos = FlxPoint.get();
+		
+		// Music.
+		_sndStep = FlxG.sound.load(AssetPaths.step__wav, .4);
+		_sndStep.proximity(x, y, FlxG.camera.target, FlxG.width * .6);
     }
 	
     override public function draw():Void
@@ -129,5 +135,11 @@ class Enemy extends FlxSprite
 		
 		_brain.update();
 		super.update(elapsed);
+		
+		if ((velocity.x != 0 || velocity.y != 0) && touching == FlxObject.NONE)
+		{
+			_sndStep.setPosition(x + frameWidth / 2, y + height);
+			_sndStep.play();
+		}
 	}
 }

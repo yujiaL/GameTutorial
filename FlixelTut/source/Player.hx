@@ -4,12 +4,15 @@ import flixel.FlxSprite;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.system.FlxAssets.FlxGraphicAsset;
+import flixel.system.FlxSound;
 import flixel.util.FlxColor;
 import flixel.math.FlxPoint;
 
 class Player extends FlxSprite
 {
 	public var speed:Float = 200;
+	
+	private var _sndStep:FlxSound;
 	
 	public function new(?X:Float=0, ?Y:Float=0) 
 	{
@@ -29,6 +32,9 @@ class Player extends FlxSprite
 		
 		// Drag force to stop player from keeping walking.
 		drag.x = drag.y = 1600;
+		
+		// Music.
+		_sndStep = FlxG.sound.load(AssetPaths.step__wav);
 	}
 	
 	override public function update(elapsed:Float):Void
@@ -92,6 +98,7 @@ class Player extends FlxSprite
 			// Player the right animation for each direction.
 			if ((velocity.x != 0 || velocity.y != 0) && touching == FlxObject.NONE) 
 			{
+				_sndStep.play();
 				switch (facing)
 				{
 					case FlxObject.LEFT, FlxObject.RIGHT:

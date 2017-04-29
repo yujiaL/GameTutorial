@@ -3,6 +3,7 @@ package;
 import flixel.FlxState;
 import flixel.FlxObject;
 import flixel.FlxG;
+import flixel.system.FlxSound;
 import flixel.util.FlxColor;
 import flixel.util.FlxSpriteUtil;
 import flixel.addons.editors.ogmo.FlxOgmoLoader;
@@ -28,6 +29,8 @@ class PlayState extends FlxState
 	
 	private var _ending:Bool;
 	private var _won:Bool;
+	
+	private var _sndCoin:FlxSound;
 	
 	override public function create():Void
 	{
@@ -62,6 +65,9 @@ class PlayState extends FlxState
 		// Set Combat HUD;
 		_combatHud = new CombatHUD();
 		add(_combatHud);
+		
+		// Set sound.
+		_sndCoin = FlxG.sound.load(AssetPaths.coin__wav);
 		
 		super.create();
 	}
@@ -179,6 +185,7 @@ class PlayState extends FlxState
 	{
 		if (P.alive && P.exists && C.alive && C.exists)
 		{
+			_sndCoin.play(true);
 			_money++;
 			_hud.updateHUD(_health, _money);
 			C.kill();
