@@ -2,6 +2,7 @@ package;
 
 import flixel.FlxSprite;
 import flixel.FlxObject;
+import flixel.util.FlxSpriteUtil;
 import flixel.math.FlxVelocity;
 import flixel.math.FlxPoint;
 import flixel.FlxG;
@@ -9,14 +10,16 @@ import flixel.system.FlxAssets.FlxGraphicAsset;
 
 class Enemy extends FlxSprite
 {
-    public var speed:Float = 140;
+    public var speed:Float = 50;
     public var etype(default, null):Int;
+	public var seesPlayer:Bool = false;
+	public var playerPos(default, null):FlxPoint;
 	
 	private var _brain:FSM;
 	private var _idleTmr:Float;
 	private var _moveDir:Float;
-	public var seesPlayer:Bool = false;
-	public var playerPos(default, null):FlxPoint;
+	private var _health:Int;
+	private var _dead:Bool;
 	
     public function new(X:Float=0, Y:Float=0, EType:Int)
     {
@@ -37,6 +40,9 @@ class Enemy extends FlxSprite
 		_brain = new FSM(idle);
 		_idleTmr = 0;
 		playerPos = FlxPoint.get();
+		
+		// Health.
+		_health = 3;
     }
 	
     override public function draw():Void
@@ -111,9 +117,29 @@ class Enemy extends FlxSprite
 			FlxVelocity.moveTowardsPoint(this, playerPos, Std.int(speed));
 		}
 	}
+	
+	public function getsHit(damage:Int):Void
+	{
+		if (!FlxSpriteUtil.isFlickering(this))
+		{
+			_health -= damage;
+			FlxSpriteUtil.flicker(this);
+		}
+	}
 
 	override public function update(elapsed:Float):Void
 	{
+		if (_dead)
+			return;
+			
+		if (FlxSpriteUtil.isFlickering(this))
+			return;
+		
+		if (_health == 0)
+		{
+			this.kill();
+		}
+		
 		_brain.update();
 		super.update(elapsed);
 	}

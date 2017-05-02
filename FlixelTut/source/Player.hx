@@ -3,15 +3,21 @@ package;
 import flixel.FlxSprite;
 import flixel.FlxG;
 import flixel.FlxObject;
+import flixel.util.FlxSpriteUtil;
+import flixel.addons.weapon.FlxWeapon;
 import flixel.system.FlxAssets.FlxGraphicAsset;
 import flixel.util.FlxColor;
 import flixel.math.FlxPoint;
+import flixel.group.FlxGroup.FlxTypedGroup;
 
 class Player extends FlxSprite
 {
 	public var speed:Float = 200;
 	
-	public function new(?X:Float=0, ?Y:Float=0) 
+	private var _sword:Sword;
+	private var _health:Int;
+	
+	public function new(?X:Float=0, ?Y:Float=0, sword:Sword) 
 	{
 		super(X, Y);
 		
@@ -27,12 +33,45 @@ class Player extends FlxSprite
 		animation.add("u", [6, 7, 6, 8], 6, false);
 		animation.add("d", [0, 1, 0, 2], 6, false);
 		
+		// Add weapon.
+		_sword = sword;
+		facing = FlxObject.DOWN;
+		_sword.holdSword(this.x + 16, this.y, facing);
+		_sword.set_visible(true);
+		
+		// Health.
+		_health = 5;
+		
 		// Drag force to stop player from keeping walking.
 		drag.x = drag.y = 1600;
 	}
 	
+	public function getsHit(damage:Int):Void
+	{
+		if (!FlxSpriteUtil.isFlickering(this))
+		{
+			_health -= damage;
+			FlxSpriteUtil.flicker(this);
+		}
+	}
+	
 	override public function update(elapsed:Float):Void
 	{
+		if (_health <= 0)
+			FlxG.switchState(new MenuState());
+			
+		switch (facing)
+		{
+			case FlxObject.LEFT:
+				_sword.holdSword(this.x - 16, this.y, facing);
+			case FlxObject.RIGHT :
+				_sword.holdSword(this.x + 16, this.y, facing);
+			case FlxObject.UP:
+				_sword.holdSword(this.x, this.y - 16, facing);
+			case FlxObject.DOWN:
+				_sword.holdSword(this.x, this.y + 16, facing);
+		}
+		
 		movement();
 		super.update(elapsed);
 	}
@@ -94,7 +133,9 @@ class Player extends FlxSprite
 			{
 				switch (facing)
 				{
-					case FlxObject.LEFT, FlxObject.RIGHT:
+					case FlxObject.LEFT:
+						animation.play("lr");
+					case FlxObject.RIGHT :
 						animation.play("lr");
 					case FlxObject.UP:
 						animation.play("u");
@@ -103,5 +144,10 @@ class Player extends FlxSprite
 				}
 			}
 		}
+	}
+	
+	public function attack(enemies:FlxTypedGroup<Enemy>)
+	{
+		_sword.attack(this, enemies);
 	}
 }

@@ -16,6 +16,7 @@ class PlayState extends FlxState
 	private var _mWalls:FlxTilemap;
 	private var _grpCoins:FlxTypedGroup<Coin>;
 	private var _grpEnemies:FlxTypedGroup<Enemy>;
+	private var _sword:Sword;
 	
 	override public function create():Void
 	{
@@ -35,8 +36,12 @@ class PlayState extends FlxState
 		_grpEnemies = new FlxTypedGroup<Enemy>();
 		add(_grpEnemies);
 		
+		// Set up weapon.
+		_sword = new Sword();
+		add(_sword);
+		
 		// Set up player.
-		_player = new Player();
+		_player = new Player(_sword);
 		_map.loadEntities(placeEntities, "entities");
 		add(_player);
 		
@@ -76,6 +81,18 @@ class PlayState extends FlxState
 		// Check for enemy.
 		FlxG.collide(_grpEnemies, _mWalls);
 		_grpEnemies.forEachAlive(checkEnemyVision);
+		
+		// Damage.
+		FlxG.overlap(_player, _grpEnemies, playerTouchEnemy);
+		
+		// Attack.
+		if (FlxG.keys.justPressed.SPACE)
+			_player.attack(_grpEnemies);
+	}
+	
+	private function playerTouchEnemy(P:Player, E:Enemy):Void
+	{
+		P.getsHit(1);
 	}
 	
 	private function checkEnemyVision(e:Enemy):Void
@@ -86,7 +103,7 @@ class PlayState extends FlxState
 			e.playerPos.copyFrom(_player.getMidpoint());
 		}
 		else
-		e.seesPlayer = false;
+			e.seesPlayer = false;
 	}
 	
 	private function playerTouchCoin(P:Player, C:Coin):Void
