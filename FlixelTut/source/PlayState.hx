@@ -18,6 +18,9 @@ class PlayState extends FlxState
 	private var _grpEnemies:FlxTypedGroup<Enemy>;
 	private var _sword:Sword;
 	
+	private var _ticksText:FlxText;
+	private var _ticks:Int;
+	
 	override public function create():Void
 	{
 		// Set up tile.
@@ -47,6 +50,11 @@ class PlayState extends FlxState
 		
 		// Set camera.
 		FlxG.camera.follow(_player, TOPDOWN, 1);
+		
+		// Set up ticks.
+		_ticksText = new FlxText(16, 2, 0, "Time pressed " + (FlxG.game.ticks), 12);
+		_ticksText.scrollFactor.set(0, 0);
+		add(_ticksText);
 		
 		super.create();
 	}
@@ -86,8 +94,13 @@ class PlayState extends FlxState
 		FlxG.overlap(_player, _grpEnemies, playerTouchEnemy);
 		
 		// Attack.
-		if (FlxG.keys.justPressed.SPACE)
+		if (FlxG.keys.justPressed.SPACE) {
+			_ticks = FlxG.game.ticks;
+		}
+		if (FlxG.keys.justReleased.SPACE) {
+			_ticksText.text = "Time pressed " + (FlxG.game.ticks - _ticks);
 			_player.attack(_grpEnemies);
+		}
 	}
 	
 	private function playerTouchEnemy(P:Player, E:Enemy):Void

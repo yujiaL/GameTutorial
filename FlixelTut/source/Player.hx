@@ -22,7 +22,7 @@ class Player extends FlxSprite
 		super(X, Y);
 		
 		// Make the actual size of the player smaller.
-		setSize(8, 14);
+		setSize(2, 2);
 		offset.set(0, 2);
 		
 		// Load animation for the player.
